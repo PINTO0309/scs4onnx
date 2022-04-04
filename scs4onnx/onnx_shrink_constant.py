@@ -66,6 +66,8 @@ def shrinking(
         Shrunken onnx ModelProto
 
     npy_file_paths:
+        List of paths to externally output .npy files.
+        An empty list is always returned when in 'shrink' mode.
     """
     # Loading Graphs
     graph = gs.import_onnx(onnx.load(input_onnx_file_path))
