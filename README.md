@@ -46,13 +46,17 @@ optional arguments:
 ```bash
 $ scs4onnx input.onnx shrink
 ```
+![image](https://user-images.githubusercontent.com/33194443/161479166-6929a72d-4231-4e6d-9a1f-83f9c1d70886.png)
+
 ## 4. Sample
 ### 4-1. **`shrink`** mode sample
 - 297.8MB -> 67.4MB
 
   ![image](https://user-images.githubusercontent.com/33194443/161478190-301428b2-6ae7-4e59-bd56-d17e6a7bbe50.png)
+  ![image](https://user-images.githubusercontent.com/33194443/161479347-af571cef-2162-4581-bc61-aca74bd2f387.png)
 
 ### 4-2. **`npy`** mode sample
 - 297.8MB -> 21.3MB
 
   ![image](https://user-images.githubusercontent.com/33194443/161477818-9cce1821-a471-4dd5-90d2-d46f7c4576b9.png)
+  ![image](https://user-images.githubusercontent.com/33194443/161479281-58df1cd6-cfcc-44d0-a4e9-234adc7e3f7a.png)
