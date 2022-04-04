@@ -93,7 +93,7 @@ def main():
             #     continue
             if np.isscalar(graph_node_input.values):
                 continue
-            constants[graph_node_input.name] = graph_node_input#.values
+            constants[graph_node_input.name] = graph_node_input
     print(
         f'{Color.GREEN}INFO:{Color.RESET} '+
         f'Number of constant values to be studied: {len(constants)}'
