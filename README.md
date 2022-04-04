@@ -3,7 +3,7 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 
 [![Downloads](https://static.pepy.tech/personalized-badge/scs4onnx?period=total&units=none&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/scs4onnx) ![GitHub](https://img.shields.io/github/license/PINTO0309/scs4onnx?color=2BAF2B) [![PyPI](https://img.shields.io/pypi/v/scs4onnx?color=2BAF2B)](https://pypi.org/project/scs4onnx/)
 
-# key concept
+# Key concept
 1. If the same constant tensor is found by scanning the entire graph for Constant values, it is aggregated into a single constant tensor.
 2. Ignore scalar values.
 3. Ignore variables.
