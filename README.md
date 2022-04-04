@@ -75,7 +75,7 @@ shrunk_graph, npy_file_paths = shrinking('input.onnx', 'output.onnx', mode='npy'
 
 ### 5-3. **`.npy`** file view
 ```python
-$ python3
+$ python
 >>> import numpy as np
 >>> param = np.load('gmflow_sintel_480x640_shrunken_exported_1646.npy')
 >>> param.shape
