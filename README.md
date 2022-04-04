@@ -30,6 +30,7 @@ $ docker build -t pinto0309/scs4onnx:latest .
 
 ### docker run
 $ docker run --rm -it -v `pwd`:/workdir pinto0309/scs4onnx:latest
+$ cd /workdir
 ```
 
 ## 2. Usage
