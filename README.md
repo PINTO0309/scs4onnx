@@ -37,7 +37,8 @@ $ cd /workdir
 ```bash
 $ scs4onnx -h
 
-usage: scs4onnx [-h] [--mode {shrink,npy}] [--non_verbose] input_onnx_file_path output_onnx_file_path
+usage:
+scs4onnx [-h] [--mode {shrink,npy}] [--non_verbose] input_onnx_file_path output_onnx_file_path
 
 positional arguments:
   input_onnx_file_path
