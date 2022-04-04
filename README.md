@@ -29,8 +29,11 @@ usage: scs4onnx [-h] onnx_file_path {shrink,npy}
 positional arguments:
   onnx_file_path  Input onnx file path.
   {shrink,npy}    Constant Value Compression Mode.
-                  shrink: Share constant values inside the model as much as possible. The model size is slightly larger because some shared constant values remain inside the model, but performance is maximized.
-                  npy: Outputs constant values used repeatedly in the model to an external file .npy. Instead of the smallest model body size, the file loading overhead is greater.
+                  shrink: Share constant values inside the model as much as possible.
+                          The model size is slightly larger because some shared constant values
+                          remain inside the model, but performance is maximized.
+                  npy: Outputs constant values used repeatedly in the model to an external file .npy.
+                       Instead of the smallest model body size, the file loading overhead is greater.
                   Default: shrink
 
 optional arguments:
