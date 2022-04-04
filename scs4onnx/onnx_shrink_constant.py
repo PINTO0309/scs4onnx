@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-from onnx_graphsurgeon.ir.tensor import Variable, Constant
+from onnx_graphsurgeon.ir.tensor import Constant
 
 class Color:
     BLACK          = '\033[30m'
