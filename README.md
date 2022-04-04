@@ -24,38 +24,50 @@ $ pip install -U onnx \
 ```bash
 $ scs4onnx -h
 
-usage: scs4onnx [-h] onnx_file_path {shrink,npy}
+usage: scs4onnx [-h] [--mode {shrink,npy}] input_onnx_file_path output_onnx_file_path
 
 positional arguments:
-  onnx_file_path  Input onnx file path.
-  {shrink,npy}    Constant Value Compression Mode.
-  
-                  shrink: Share constant values inside the model as much as possible.
-                          The model size is slightly larger because some shared constant values
-                          remain inside the model, but performance is maximized.
-                  npy:    Outputs constant values used repeatedly in the model to an external
-                          file .npy. Instead of the smallest model body size, the file loading
-                          overhead is greater.
-                  Default: shrink
+  input_onnx_file_path
+                        Input onnx file path.
+  output_onnx_file_path
+                        Output onnx file path.
 
 optional arguments:
-  -h, --help      show this help message and exit
+  -h, --help            show this help message and exit
+  --mode {shrink,npy}   Constant Value Compression Mode.
+                        shrink: Share constant values inside the model as much as possible.
+                                The model size is slightly larger because
+                                some shared constant values remain inside the model,
+                                but performance is maximized.
+                        npy:    Outputs constant values used repeatedly in the model to an
+                                external file .npy. Instead of the smallest model body size,
+                                the file loading overhead is greater.
+                        Default: shrink
+
 ```
 
-## 3. Execution
+## 3. CLI Execution
 ```bash
-$ scs4onnx input.onnx shrink
+$ scs4onnx input.onnx output.onnx --mode=shrink
 ```
 ![image](https://user-images.githubusercontent.com/33194443/161479166-6929a72d-4231-4e6d-9a1f-83f9c1d70886.png)
 
-## 4. Sample
-### 4-1. **`shrink`** mode sample
+## 4. In-script Execution
+```python
+from scs4onnx import shrinking
+
+shrunk_graph, npy_file_paths = shrinking('input.onnx', 'output.onnx', mode='npy')
+```
+![image](https://user-images.githubusercontent.com/33194443/161514266-dc24c3a4-5968-4d2b-9eba-9c7f1538f974.png)
+
+## 5. Sample
+### 5-1. **`shrink`** mode sample
 - 297.8MB -> 67.4MB
 
   ![image](https://user-images.githubusercontent.com/33194443/161478190-301428b2-6ae7-4e59-bd56-d17e6a7bbe50.png)
   ![image](https://user-images.githubusercontent.com/33194443/161479347-af571cef-2162-4581-bc61-aca74bd2f387.png)
 
-### 4-2. **`npy`** mode sample
+### 5-2. **`npy`** mode sample
 - 297.8MB -> 21.3MB
 
   ![image](https://user-images.githubusercontent.com/33194443/161477818-9cce1821-a471-4dd5-90d2-d46f7c4576b9.png)

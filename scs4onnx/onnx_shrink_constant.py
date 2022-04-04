@@ -2,13 +2,13 @@
 
 import os
 import sys
-import shutil
 from pprint import pprint
 from argparse import ArgumentParser
 import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
 from onnx_graphsurgeon.ir.tensor import Constant
+from typing import Tuple, Optional
 
 class Color:
     BLACK          = '\033[30m'
@@ -35,51 +35,40 @@ class Color:
     BG_DEFAULT     = '\033[49m'
     RESET          = '\033[0m'
 
-def main():
-    parser = ArgumentParser()
-    parser.add_argument(
-        'onnx_file_path',
-        type=str,
-        help='Input onnx file path.'
-    )
-    parser.add_argument(
-        'mode',
-        type=str,
-        choices=[
-            'shrink',
-            'npy',
-        ],
-        default='shrink',
-        help="\
-            Constant Value Compression Mode. \
-            shrink: Share constant values inside the model as much as possible. \
-            The model size is slightly larger because some shared constant values remain \
-            inside the model, but performance is maximized. \
-            npy: Outputs constant values used repeatedly in the model to an external file .npy. \
-            Instead of the smallest model body size, the file loading overhead is greater. \
-            Default: shrink"
-    )
-    args = parser.parse_args()
 
-    # file existence check
-    if not os.path.exists(args.onnx_file_path) or \
-        not os.path.isfile(args.onnx_file_path) or \
-        not os.path.splitext(args.onnx_file_path)[-1] == '.onnx':
+def shrinking(
+    input_onnx_file_path: str,
+    output_onnx_file_path: str,
+    mode: Optional[str] = 'shrink'
+) -> Tuple[onnx.ModelProto, str]:
 
-        print(
-            f'{Color.RED}ERROR:{Color.RESET} '+
-            f'The specified file (.onnx) does not exist. or not an onnx file. File: {args.onnx_file_path}'
-        )
-        sys.exit(1)
+    """
+    Parameters
+    ----------
+    input_onnx_file_path: str
+        Input onnx file path.
 
-    # Working file generation
-    work_file_path = shutil.copy(
-        args.onnx_file_path,
-        f'{os.path.splitext(args.onnx_file_path)[0]}_shrunken.onnx'
-    )
+    output_onnx_file_path: str
+        Outpu onnx file path.
 
+    mode: Optional[str]
+        Constant Value Compression Mode.\n\
+        'shrink': Share constant values inside the model as much as possible.\n\
+            The model size is slightly larger because some shared constant values remain\n\
+            inside the model, but performance is maximized.\n\
+        'npy': Outputs constant values used repeatedly in the model to an external file .npy.\n\
+            Instead of the smallest model body size, the file loading overhead is greater.\n\
+        Default: shrink
+
+    Returns
+    -------
+    shrunken_graph: onnx.ModelProto
+        Shrunken onnx ModelProto
+
+    npy_file_paths:
+    """
     # Loading Graphs
-    graph = gs.import_onnx(onnx.load(work_file_path))
+    graph = gs.import_onnx(onnx.load(input_onnx_file_path))
 
     # Constant Value Extraction
     constants = {}
@@ -89,8 +78,6 @@ def main():
                 continue
             if len(graph_node_input.shape) == 0:
                 continue
-            # if np.asarray(graph_node_input.values).size <= 1:
-            #     continue
             if np.isscalar(graph_node_input.values):
                 continue
             constants[graph_node_input.name] = graph_node_input
@@ -127,15 +114,17 @@ def main():
     aggregate_constants
     {'425': ['434', '5506'], '1646': ['1910', '2608', '2872', '3570', '3834'], '5550': ['4107']}
     """
+    npy_file_paths = []
     for layer_name_quoted_src, layer_name_quoted_dists in aggregate_constants_name_list.items():
         i = None
-        if args.mode == 'npy':
+        if mode == 'npy':
             # Export constant values to a numpy file
-            external_file_name = f"{os.path.splitext(args.onnx_file_path)[0]}_shrunken_exported_{layer_name_quoted_src.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
+            external_file_name = f"{os.path.splitext(os.path.basename(output_onnx_file_path))[0]}_exported_{layer_name_quoted_src.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
             np.save(
                 external_file_name,
                 aggregate_constants_value_list[layer_name_quoted_src].values
             )
+            npy_file_paths.append(external_file_name)
             # Generate Inputs
             i = gs.Variable(
                 name=external_file_name,
@@ -150,24 +139,78 @@ def main():
                 for layer_name_quoted_dist in layer_name_quoted_dists:
                     if not graph_node_input.name == layer_name_quoted_src and graph_node_input.name == layer_name_quoted_dist:
                         graph.nodes[graph_node_idx].inputs[input_idx] = aggregate_constants_value_list[layer_name_quoted_src]
-                    if args.mode == 'npy' and graph_node_input.name == layer_name_quoted_src:
+                    if mode == 'npy' and graph_node_input.name == layer_name_quoted_src:
                         graph.nodes[graph_node_idx].inputs[input_idx] = i
 
     graph.cleanup().toposort()
+    print(f'{Color.GREEN}INFO:{Color.RESET} Results:')
+    pprint(aggregate_constants_name_list)
+    if len(npy_file_paths) > 0:
+        print(f'{Color.GREEN}INFO:{Color.RESET} .npy files:')
+        pprint(npy_file_paths)
+
+    shrunken_graph = gs.export_onnx(graph)
+
     new_model = None
     try:
-        new_model = onnx.shape_inference.infer_shapes(gs.export_onnx(graph))
+        new_model = onnx.shape_inference.infer_shapes(shrunken_graph)
     except:
-        new_model = gs.export_onnx(graph)
+        new_model = shrunken_graph
         print(
             f'{Color.YELLOW}WARNING:{Color.RESET} '+
             'The input shape of the next OP does not match the output shape. '+
             'Be sure to open the .onnx file to verify the certainty of the geometry.'
         )
-    onnx.save(new_model, f'{work_file_path}')
-    print(f'{Color.GREEN}INFO:{Color.RESET} Results:')
-    pprint(aggregate_constants_name_list)
-    print(f'{Color.GREEN}INFO:{Color.RESET} Finish!')
 
-if __name__ == '__main__':
-    main()
+    # Save
+    onnx.save(new_model, f'{output_onnx_file_path}')
+
+    return new_model, npy_file_paths
+
+
+def main():
+    parser = ArgumentParser()
+    parser.add_argument(
+        'input_onnx_file_path',
+        type=str,
+        help='Input onnx file path.'
+    )
+    parser.add_argument(
+        'output_onnx_file_path',
+        type=str,
+        help='Output onnx file path.'
+    )
+    parser.add_argument(
+        '--mode',
+        type=str,
+        choices=[
+            'shrink',
+            'npy',
+        ],
+        default='shrink',
+        help="\
+            Constant Value Compression Mode. \
+            shrink: Share constant values inside the model as much as possible. \
+            The model size is slightly larger because some shared constant values remain \
+            inside the model, but performance is maximized. \
+            npy: Outputs constant values used repeatedly in the model to an external file .npy. \
+            Instead of the smallest model body size, the file loading overhead is greater. \
+            Default: shrink"
+    )
+    args = parser.parse_args()
+
+    # file existence check
+    if not os.path.exists(args.input_onnx_file_path) or \
+        not os.path.isfile(args.input_onnx_file_path) or \
+        not os.path.splitext(args.input_onnx_file_path)[-1] == '.onnx':
+
+        print(
+            f'{Color.RED}ERROR:{Color.RESET} '+
+            f'The specified file (.onnx) does not exist. or not an onnx file. File: {args.input_onnx_file_path}'
+        )
+        sys.exit(1)
+
+    # Model shrink
+    shrunken_graph, npy_file_paths = shrinking(args.input_onnx_file_path, args.output_onnx_file_path, args.mode)
+
+    print(f'{Color.GREEN}INFO:{Color.RESET} Finish!')
