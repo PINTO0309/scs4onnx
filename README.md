@@ -72,3 +72,7 @@ shrunk_graph, npy_file_paths = shrinking('input.onnx', 'output.onnx', mode='npy'
 
   ![image](https://user-images.githubusercontent.com/33194443/161477818-9cce1821-a471-4dd5-90d2-d46f7c4576b9.png)
   ![image](https://user-images.githubusercontent.com/33194443/161479281-58df1cd6-cfcc-44d0-a4e9-234adc7e3f7a.png)
+
+## 5. Reference
+1. https://docs.nvidia.com/deeplearning/tensorrt/onnx-graphsurgeon/docs/index.html
+2. https://github.com/NVIDIA/TensorRT/tree/main/tools/onnx-graphsurgeon
