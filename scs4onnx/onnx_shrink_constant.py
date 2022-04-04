@@ -86,8 +86,8 @@ def main():
                 continue
             if len(graph_node_input.shape) == 0:
                 continue
-            if np.asarray(graph_node_input.values).size <= 1:
-                continue
+            # if np.asarray(graph_node_input.values).size <= 1:
+            #     continue
             if np.isscalar(graph_node_input.values):
                 continue
             constants[graph_node_input.name] = graph_node_input#.values
@@ -120,16 +120,35 @@ def main():
                             aggregate_constants_name_list[constants_list[comparator_idx][0]].append(constants_list[comparison_dest_idx][0])
                             aggregate_constants_value_list.setdefault(constants_list[comparator_idx][0], constants_list[comparator_idx][1])
 
-    for graph_node_idx, graph_node in enumerate(graph.nodes):
-        for input_idx, graph_node_input in enumerate(graph_node.inputs):
-            """
-            aggregate_constants
-            {'425': ['434', '5506'], '1646': ['1910', '2608', '2872', '3570', '3834'], '5550': ['4107']}
-            """
-            for layer_name_quoted_src, layer_name_quoted_dists in aggregate_constants_name_list.items():
+    """
+    aggregate_constants
+    {'425': ['434', '5506'], '1646': ['1910', '2608', '2872', '3570', '3834'], '5550': ['4107']}
+    """
+    for layer_name_quoted_src, layer_name_quoted_dists in aggregate_constants_name_list.items():
+        i = None
+        if args.mode == 'npy':
+            # Export constant values to a numpy file
+            external_file_name = f"{os.path.splitext(args.onnx_file_path)[0]}_shrunken_exported_{layer_name_quoted_src.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
+            np.save(
+                external_file_name,
+                aggregate_constants_value_list[layer_name_quoted_src].values
+            )
+            # Generate Inputs
+            i = gs.Variable(
+                name=external_file_name,
+                dtype=aggregate_constants_value_list[layer_name_quoted_src].values.dtype,
+                shape=aggregate_constants_value_list[layer_name_quoted_src].values.shape,
+            )
+            aggregate_constants_value_list[layer_name_quoted_src] = i
+            graph.inputs.append(i)
+
+        for graph_node_idx, graph_node in enumerate(graph.nodes):
+            for input_idx, graph_node_input in enumerate(graph_node.inputs):
                 for layer_name_quoted_dist in layer_name_quoted_dists:
                     if not graph_node_input.name == layer_name_quoted_src and graph_node_input.name == layer_name_quoted_dist:
                         graph.nodes[graph_node_idx].inputs[input_idx] = aggregate_constants_value_list[layer_name_quoted_src]
+                    if args.mode == 'npy' and graph_node_input.name == layer_name_quoted_src:
+                        graph.nodes[graph_node_idx].inputs[input_idx] = i
 
     graph.cleanup().toposort()
     new_model = None
@@ -143,6 +162,8 @@ def main():
             'Be sure to open the .onnx file to verify the certainty of the geometry.'
         )
     onnx.save(new_model, f'{work_file_path}')
+    print(f'{Color.GREEN}INFO:{Color.RESET} Results:')
+    pprint(aggregate_constants_name_list)
     print(f'{Color.GREEN}INFO:{Color.RESET} Finish!')
 
 if __name__ == '__main__':

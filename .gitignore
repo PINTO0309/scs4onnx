@@ -8,4 +8,5 @@ scs4onnx/saved_model/
 __pycache__/
 
 *.onnx
+*.npy
 480x640_*
