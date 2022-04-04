@@ -9,6 +9,7 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 3. Ignore variables.
 
 ## 1. Setup
+### 1-1. HostPC
 ```bash
 ### option
 $ echo export PATH="~/.local/bin:$PATH" >> ~/.bashrc \
@@ -18,6 +19,14 @@ $ echo export PATH="~/.local/bin:$PATH" >> ~/.bashrc \
 $ pip install -U onnx \
 && python3 -m pip install -U onnx_graphsurgeon --index-url https://pypi.ngc.nvidia.com \
 && pip install -U scs4onnx
+```
+### 1-2. Docker
+```bash
+### docker pull
+$ docker pull pinto0309/scs4onnx:latest
+
+### docker build
+$ docker build -t pinto0309/scs4onnx:latest .
 ```
 
 ## 2. Usage
