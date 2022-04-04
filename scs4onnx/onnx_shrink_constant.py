@@ -3,10 +3,12 @@
 import os
 import sys
 import shutil
+from pprint import pprint
 from argparse import ArgumentParser
+import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
-from onnx_graphsurgeon.ir.tensor import Variable
+from onnx_graphsurgeon.ir.tensor import Variable, Constant
 
 class Color:
     BLACK          = '\033[30m'
@@ -56,18 +58,80 @@ def main():
     )
     args = parser.parse_args()
 
+    # file existence check
+    if not os.path.exists(args.onnx_file_path) or \
+        not os.path.isfile(args.onnx_file_path) or \
+        not os.path.splitext(args.onnx_file_path)[-1] == '.onnx':
 
-    work_file_path = shutil.copy(args.onnx_file_path, f'{os.path.splitext(args.onnx_file_path)[0]}_shrunken.onnx')
+        print(
+            f'{Color.RED}ERROR:{Color.RESET} '+
+            f'The specified file (.onnx) does not exist. or not an onnx file. File: {args.onnx_file_path}'
+        )
+        sys.exit(1)
 
+    # Working file generation
+    work_file_path = shutil.copy(
+        args.onnx_file_path,
+        f'{os.path.splitext(args.onnx_file_path)[0]}_shrunken.onnx'
+    )
+
+    # Loading Graphs
     graph = gs.import_onnx(onnx.load(work_file_path))
 
+    # Constant Value Extraction
+    constants = {}
+    for graph_node in graph.nodes:
+        for graph_node_input in graph_node.inputs:
+            if not isinstance(graph_node_input, Constant):
+                continue
+            if len(graph_node_input.shape) == 0:
+                continue
+            if np.asarray(graph_node_input.values).size <= 1:
+                continue
+            if np.isscalar(graph_node_input.values):
+                continue
+            constants[graph_node_input.name] = graph_node_input#.values
+    print(
+        f'{Color.GREEN}INFO:{Color.RESET} '+
+        f'Number of constant values to be studied: {len(constants)}'
+    )
 
+    constants_list = list(constants.items())
 
+    # Processing is performed only when the number of constant tensors to be processed is 2 or more
+    if len(constants_list) >= 2:
+        # Aggregate list generation
+        aggregate_constants_name_list = {}
+        aggregate_constants_value_list = {}
+        aggregate_constants_matched_list = [False] * len(constants_list)
 
+        for comparator_idx in range(0, len(constants_list)-1):
+            if not aggregate_constants_matched_list[comparator_idx]:
+                for comparison_dest_idx in range(comparator_idx+1, len(constants_list)):
+                    if not aggregate_constants_matched_list[comparison_dest_idx]:
+                        # constants_list[0] = Key, constants_list[1] = Value
+                        if (constants_list[comparator_idx][1].values.shape == constants_list[comparison_dest_idx][1].values.shape) and \
+                            (constants_list[comparator_idx][1].values.dtype == constants_list[comparison_dest_idx][1].values.dtype) and \
+                            (constants_list[comparator_idx][1].values == constants_list[comparison_dest_idx][1].values).all():
 
+                            aggregate_constants_matched_list[comparator_idx] = True
+                            aggregate_constants_matched_list[comparison_dest_idx] = True
+                            aggregate_constants_name_list.setdefault(constants_list[comparator_idx][0], [])
+                            aggregate_constants_name_list[constants_list[comparator_idx][0]].append(constants_list[comparison_dest_idx][0])
+                            aggregate_constants_value_list.setdefault(constants_list[comparator_idx][0], constants_list[comparator_idx][1])
+
+    for graph_node_idx, graph_node in enumerate(graph.nodes):
+        for input_idx, graph_node_input in enumerate(graph_node.inputs):
+            """
+            aggregate_constants
+            {'425': ['434', '5506'], '1646': ['1910', '2608', '2872', '3570', '3834'], '5550': ['4107']}
+            """
+            for layer_name_quoted_src, layer_name_quoted_dists in aggregate_constants_name_list.items():
+                for layer_name_quoted_dist in layer_name_quoted_dists:
+                    if not graph_node_input.name == layer_name_quoted_src and graph_node_input.name == layer_name_quoted_dist:
+                        graph.nodes[graph_node_idx].inputs[input_idx] = aggregate_constants_value_list[layer_name_quoted_src]
 
     graph.cleanup().toposort()
-
     new_model = None
     try:
         new_model = onnx.shape_inference.infer_shapes(gs.export_onnx(graph))
@@ -79,6 +143,7 @@ def main():
             'Be sure to open the .onnx file to verify the certainty of the geometry.'
         )
     onnx.save(new_model, f'{work_file_path}')
+    print(f'{Color.GREEN}INFO:{Color.RESET} Finish!')
 
 if __name__ == '__main__':
     main()
