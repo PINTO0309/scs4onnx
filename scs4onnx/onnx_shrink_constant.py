@@ -126,7 +126,9 @@ def shrinking(
         i = None
         if mode == 'npy':
             # Export constant values to a numpy file
-            external_file_name = f"{os.path.splitext(os.path.basename(output_onnx_file_path))[0]}_exported_{layer_name_quoted_src.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
+            external_file_name = \
+                f"{os.path.splitext(os.path.basename(output_onnx_file_path))[0]}" + \
+                f"_exported_{layer_name_quoted_src.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
             np.save(
                 external_file_name,
                 aggregate_constants_value_list[layer_name_quoted_src].values
@@ -225,7 +227,12 @@ def main():
         sys.exit(1)
 
     # Model shrink
-    shrunken_graph, npy_file_paths = shrinking(args.input_onnx_file_path, args.output_onnx_file_path, args.mode, args.non_verbose)
+    shrunken_graph, npy_file_paths = shrinking(
+        args.input_onnx_file_path,
+        args.output_onnx_file_path,
+        args.mode,
+        args.non_verbose
+    )
 
     if not args.non_verbose:
         print(f'{Color.GREEN}INFO:{Color.RESET} Finish!')
