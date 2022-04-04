@@ -33,8 +33,9 @@ positional arguments:
                   shrink: Share constant values inside the model as much as possible.
                           The model size is slightly larger because some shared constant values
                           remain inside the model, but performance is maximized.
-                  npy:    Outputs constant values used repeatedly in the model to an external file .npy.
-                          Instead of the smallest model body size, the file loading overhead is greater.
+                  npy:    Outputs constant values used repeatedly in the model to an external
+                          file .npy. Instead of the smallest model body size, the file loading
+                          overhead is greater.
                   Default: shrink
 
 optional arguments:
