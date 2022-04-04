@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setup(
     name="scs4onnx",
-    version="1.0.3",
+    version="1.0.4",
     description="A very simple tool that compresses the overall size of the ONNX model by aggregating duplicate constant values as much as possible. Simple Constant value Shrink for ONNX.",
     long_description=long_description,
     long_description_content_type="text/markdown",

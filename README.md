@@ -24,7 +24,7 @@ $ pip install -U onnx \
 ```bash
 $ scs4onnx -h
 
-usage: scs4onnx [-h] [--mode {shrink,npy}] input_onnx_file_path output_onnx_file_path
+usage: scs4onnx [-h] [--mode {shrink,npy}] [--non_verbose] input_onnx_file_path output_onnx_file_path
 
 positional arguments:
   input_onnx_file_path
@@ -43,12 +43,12 @@ optional arguments:
                                 external file .npy. Instead of the smallest model body size,
                                 the file loading overhead is greater.
                         Default: shrink
-
+  --non_verbose         Do not show all information logs. Only error logs are displayed.
 ```
 
 ## 3. CLI Execution
 ```bash
-$ scs4onnx input.onnx output.onnx --mode=shrink
+$ scs4onnx input.onnx output.onnx --mode shrink
 ```
 ![image](https://user-images.githubusercontent.com/33194443/161479166-6929a72d-4231-4e6d-9a1f-83f9c1d70886.png)
 

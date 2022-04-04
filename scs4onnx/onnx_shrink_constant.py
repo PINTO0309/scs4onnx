@@ -39,7 +39,8 @@ class Color:
 def shrinking(
     input_onnx_file_path: str,
     output_onnx_file_path: str,
-    mode: Optional[str] = 'shrink'
+    mode: Optional[str] = 'shrink',
+    non_verbose: Optional[bool] = False,
 ) -> Tuple[onnx.ModelProto, str]:
 
     """
@@ -59,6 +60,9 @@ def shrinking(
         'npy': Outputs constant values used repeatedly in the model to an external file .npy.\n\
             Instead of the smallest model body size, the file loading overhead is greater.\n\
         Default: shrink
+
+    non_verbose: Optional[bool]
+        Do not show all information logs. Only error logs are displayed.
 
     Returns
     -------
@@ -83,10 +87,11 @@ def shrinking(
             if np.isscalar(graph_node_input.values):
                 continue
             constants[graph_node_input.name] = graph_node_input
-    print(
-        f'{Color.GREEN}INFO:{Color.RESET} '+
-        f'Number of constant values to be studied: {len(constants)}'
-    )
+    if not non_verbose:
+        print(
+            f'{Color.GREEN}INFO:{Color.RESET} '+
+            f'Number of constant values to be studied: {len(constants)}'
+        )
 
     constants_list = list(constants.items())
 
@@ -145,11 +150,12 @@ def shrinking(
                         graph.nodes[graph_node_idx].inputs[input_idx] = i
 
     graph.cleanup().toposort()
-    print(f'{Color.GREEN}INFO:{Color.RESET} Results:')
-    pprint(aggregate_constants_name_list)
-    if len(npy_file_paths) > 0:
-        print(f'{Color.GREEN}INFO:{Color.RESET} .npy files:')
-        pprint(npy_file_paths)
+    if not non_verbose:
+        print(f'{Color.GREEN}INFO:{Color.RESET} Results:')
+        pprint(aggregate_constants_name_list)
+        if len(npy_file_paths) > 0:
+            print(f'{Color.GREEN}INFO:{Color.RESET} .npy files:')
+            pprint(npy_file_paths)
 
     shrunken_graph = gs.export_onnx(graph)
 
@@ -158,11 +164,12 @@ def shrinking(
         new_model = onnx.shape_inference.infer_shapes(shrunken_graph)
     except:
         new_model = shrunken_graph
-        print(
-            f'{Color.YELLOW}WARNING:{Color.RESET} '+
-            'The input shape of the next OP does not match the output shape. '+
-            'Be sure to open the .onnx file to verify the certainty of the geometry.'
-        )
+        if not non_verbose:
+            print(
+                f'{Color.YELLOW}WARNING:{Color.RESET} '+
+                'The input shape of the next OP does not match the output shape. '+
+                'Be sure to open the .onnx file to verify the certainty of the geometry.'
+            )
 
     # Save
     onnx.save(new_model, f'{output_onnx_file_path}')
@@ -199,6 +206,11 @@ def main():
             Instead of the smallest model body size, the file loading overhead is greater. \
             Default: shrink"
     )
+    parser.add_argument(
+        '--non_verbose',
+        action='store_true',
+        help='Do not show all information logs. Only error logs are displayed.'
+    )
     args = parser.parse_args()
 
     # file existence check
@@ -213,6 +225,7 @@ def main():
         sys.exit(1)
 
     # Model shrink
-    shrunken_graph, npy_file_paths = shrinking(args.input_onnx_file_path, args.output_onnx_file_path, args.mode)
+    shrunken_graph, npy_file_paths = shrinking(args.input_onnx_file_path, args.output_onnx_file_path, args.mode, args.non_verbose)
 
-    print(f'{Color.GREEN}INFO:{Color.RESET} Finish!')
+    if not args.non_verbose:
+        print(f'{Color.GREEN}INFO:{Color.RESET} Finish!')
