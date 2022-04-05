@@ -9,6 +9,11 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 - [x] Ignore scalar values.
 - [x] Ignore variables.
 - [ ] Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process
+      https://github.com/daquexian/onnx-simplifier/blob/0e7177ef545204adf6e5260ddd749012db73a7fa/onnxsim/onnx_simplifier.py#L628-L629
+      
+      from scs4onnx import shrinking
+      model_opt, _ = shrinking(onnx_graph=model_opt, non_verbose=True)
+      onnx.save(model_opt, args.output_model)
 
 ## 1. Setup
 ### 1-1. HostPC
