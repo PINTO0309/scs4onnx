@@ -8,7 +8,7 @@ import numpy as np
 import onnx
 import onnx_graphsurgeon as gs
 from onnx_graphsurgeon.ir.tensor import Constant
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 class Color:
     BLACK          = '\033[30m'
@@ -37,20 +37,28 @@ class Color:
 
 
 def shrinking(
-    input_onnx_file_path: str,
-    output_onnx_file_path: str,
+    input_onnx_file_path: Optional[str] = '',
+    output_onnx_file_path: Optional[str] = '',
+    onnx_graph: Optional[onnx.ModelProto] = None,
     mode: Optional[str] = 'shrink',
     non_verbose: Optional[bool] = False,
-) -> Tuple[onnx.ModelProto, str]:
+) -> Tuple[onnx.ModelProto, List[str]]:
 
     """
     Parameters
     ----------
-    input_onnx_file_path: str
-        Input onnx file path.
+    input_onnx_file_path: Optional[str]
+        Input onnx file path.\n\
+        Either input_onnx_file_path or onnx_graph must be specified.
 
-    output_onnx_file_path: str
-        Outpu onnx file path.
+    output_onnx_file_path: Optional[str]
+        Outpu onnx file path.\n\
+        If output_onnx_file_path is not specified, no .onnx file is output.
+
+    onnx_graph: Optional[onnx.ModelProto]
+        onnx.ModelProto.\n\
+        Either input_onnx_file_path or onnx_graph must be specified.\n\
+        onnx_graph If specified, ignore input_onnx_file_path and process onnx_graph.
 
     mode: Optional[str]
         Constant Value Compression Mode.\n\
@@ -62,19 +70,32 @@ def shrinking(
         Default: shrink
 
     non_verbose: Optional[bool]
-        Do not show all information logs. Only error logs are displayed.
+        Do not show all information logs. Only error logs are displayed.\n\
+        Default: False
 
     Returns
     -------
     shrunken_graph: onnx.ModelProto
         Shrunken onnx ModelProto
 
-    npy_file_paths:
+    npy_file_paths: List[str]
         List of paths to externally output .npy files.
         An empty list is always returned when in 'shrink' mode.
     """
+
+    if not input_onnx_file_path and not onnx_graph:
+        print(
+            f'{Color.RED}ERROR:{Color.RESET} '+
+            f'One of input_onnx_file_path or onnx_graph must be specified.'
+        )
+        sys.exit(1)
+
     # Loading Graphs
-    graph = gs.import_onnx(onnx.load(input_onnx_file_path))
+    # onnx_graph If specified, onnx_graph is processed first
+    if not onnx_graph:
+        graph = gs.import_onnx(onnx.load(input_onnx_file_path))
+    else:
+        graph = gs.import_onnx(onnx_graph)
 
     # Constant Value Extraction
     constants = {}
@@ -126,9 +147,14 @@ def shrinking(
         i = None
         if mode == 'npy':
             # Export constant values to a numpy file
-            external_file_name = \
-                f"{os.path.splitext(os.path.basename(output_onnx_file_path))[0]}" + \
-                f"_exported_{layer_name_quoted_src.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
+            external_file_name = ''
+            if output_onnx_file_path:
+                external_file_name = \
+                    f"{os.path.splitext(os.path.basename(output_onnx_file_path))[0]}" + \
+                    f"_exported_{layer_name_quoted_src.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
+            else:
+                external_file_name = \
+                    f"exported_{layer_name_quoted_src.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
             np.save(
                 external_file_name,
                 aggregate_constants_value_list[layer_name_quoted_src].values
@@ -174,7 +200,8 @@ def shrinking(
             )
 
     # Save
-    onnx.save(new_model, f'{output_onnx_file_path}')
+    if output_onnx_file_path:
+        onnx.save(new_model, f'{output_onnx_file_path}')
 
     return new_model, npy_file_paths
 
@@ -228,10 +255,10 @@ def main():
 
     # Model shrink
     shrunken_graph, npy_file_paths = shrinking(
-        args.input_onnx_file_path,
-        args.output_onnx_file_path,
-        args.mode,
-        args.non_verbose
+        input_onnx_file_path=args.input_onnx_file_path,
+        output_onnx_file_path=args.output_onnx_file_path,
+        mode=args.mode,
+        non_verbose=args.non_verbose
     )
 
     if not args.non_verbose:
