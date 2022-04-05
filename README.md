@@ -9,6 +9,8 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 - [x] Ignore scalar values.
 - [x] Ignore variables.
 - [ ] ~Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process~ -> Temporarily abandoned because it turned out that the onnx-simplifier specification needed to be changed in a major way.
+- [ ] Final work-around idea for breaking the 2GB limit, since the internal logic of onnx has a Protocol Buffers limit of 2GB checked. Recombine after optimization. Splitting and merging seems like it would be easy.
+
 
 ## 1. Setup
 ### 1-1. HostPC
