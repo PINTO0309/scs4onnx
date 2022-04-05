@@ -16,7 +16,10 @@ with open(path.join(root_dir, package_name, '__init__.py')) as f:
 setup(
     name=package_name,
     version=version,
-    description="A very simple tool that compresses the overall size of the ONNX model by aggregating duplicate constant values as much as possible. Simple Constant value Shrink for ONNX.",
+    description=\
+        "A very simple tool that compresses the overall size of the ONNX model "+ \
+        "by aggregating duplicate constant values as much as possible. "+ \
+        "Simple Constant value Shrink for ONNX.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Katsuya Hyodo",
