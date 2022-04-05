@@ -8,7 +8,7 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 - [x] If the same constant tensor is found by scanning the entire graph for Constant values, it is aggregated into a single constant tensor.
 - [x] Ignore scalar values.
 - [x] Ignore variables.
-- [ ] Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process
+- [ ] ~Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process~ -> Temporarily abandoned because it turned out that the onnx-simplifier specification needed to be changed in a major way.
 
 ## 1. Setup
 ### 1-1. HostPC
