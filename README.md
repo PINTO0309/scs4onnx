@@ -9,6 +9,7 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 - [x] Ignore scalar values.
 - [x] Ignore variables.
 - [ ] ~Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process~ -> Temporarily abandoned because it turned out that the onnx-simplifier specification needed to be changed in a major way.
+- [ ] Implementation of a specification for separating the weight of a specified OP name to an external file.
 - [ ] Final work-around idea for breaking the 2GB limit, since the internal logic of onnx has a Protocol Buffers limit of 2GB checked. Recombine after optimization. Splitting and merging seems like it would be easy. For each partitioned onnx component, optimization is performed in the order of onnx-simplifier → scs4onnx to optimize the structure while keeping the buffer size to a minimum, and then the optimized components are recombined to reconstruct the whole graph. Finally, run scs4onnx again on the reconstructed, optimized overall graph to further reduce the model-wide constant.
 
 
