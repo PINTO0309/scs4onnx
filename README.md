@@ -4,10 +4,11 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 [![Downloads](https://static.pepy.tech/personalized-badge/scs4onnx?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/scs4onnx) ![GitHub](https://img.shields.io/github/license/PINTO0309/scs4onnx?color=2BAF2B) [![PyPI](https://img.shields.io/pypi/v/scs4onnx?color=2BAF2B)](https://pypi.org/project/scs4onnx/) [![CodeQL](https://github.com/PINTO0309/scs4onnx/workflows/CodeQL/badge.svg)](https://github.com/PINTO0309/scs4onnx/actions?query=workflow%3ACodeQL)
 
 # Key concept
-1. If the same constant tensor is found by scanning the entire graph for Constant values, it is aggregated into a single constant tensor.
-2. Ignore scalar values.
-3. Ignore variables.
-4. Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process
+
+- [x] If the same constant tensor is found by scanning the entire graph for Constant values, it is aggregated into a single constant tensor.
+- [x] Ignore scalar values.
+- [x] Ignore variables.
+- [ ] Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process
 
 ## 1. Setup
 ### 1-1. HostPC
