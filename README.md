@@ -176,8 +176,33 @@ shrunk_graph, npy_file_paths = shrinking(
 ### 5-1. **`shrink`** mode sample
 - 297.8MB -> 67.4MB
 
+  ```bash
+  $ scs4onnx gmflow_sintel_480x640.onnx gmflow_sintel_480x640_opt.onnx
+  ```
+  
   ![image](https://user-images.githubusercontent.com/33194443/161478190-301428b2-6ae7-4e59-bd56-d17e6a7bbe50.png)
   ![image](https://user-images.githubusercontent.com/33194443/161479347-af571cef-2162-4581-bc61-aca74bd2f387.png)
+
+- 1.8GB -> 886.8MB (.onnx)
+
+  ```bash
+  $ scs4onnx hitnet_sf_finalpass_720x960.onnx hitnet_sf_finalpass_720x960_opt.onnx
+  ```
+  
+  ![image](https://user-images.githubusercontent.com/33194443/161931579-8b656482-9608-4fe4-91c3-93465280634c.png)
+
+- 1.8GB -> 2.1MB (.onnx) + 884.7MB (.npy)
+
+  ```bash
+  $ scs4onnx \
+  hitnet_sf_finalpass_720x960.onnx \
+  hitnet_sf_finalpass_720x960_opt.onnx \
+  --forced_extraction_op_names GatherElements_660
+  ```
+  
+  ![image](https://user-images.githubusercontent.com/33194443/161932394-da8917b6-31c0-4e79-917d-9c3109325392.png)
+  ![image](https://user-images.githubusercontent.com/33194443/161933802-4a3a055c-a1cb-4b46-a89f-de8611a0671a.png)
+
 
 ### 5-2. **`npy`** mode sample
 - 297.8MB -> 21.3MB
