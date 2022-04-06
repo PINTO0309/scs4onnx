@@ -41,6 +41,7 @@ def shrinking(
     output_onnx_file_path: Optional[str] = '',
     onnx_graph: Optional[onnx.ModelProto] = None,
     mode: Optional[str] = 'shrink',
+    forced_extraction_op_names: List[str] = [],
     non_verbose: Optional[bool] = False,
 ) -> Tuple[onnx.ModelProto, List[str]]:
 
@@ -68,6 +69,10 @@ def shrinking(
         'npy': Outputs constant values used repeatedly in the model to an external file .npy.\n\
             Instead of the smallest model body size, the file loading overhead is greater.\n\
         Default: shrink
+
+    forced_extraction_op_names: List[str]
+        Extracts the constant value of the specified OP name to .npy regardless of the mode specified.\n\
+        e.g. ['aaa','bbb','ccc']
 
     non_verbose: Optional[bool]
         Do not show all information logs. Only error logs are displayed.\n\
@@ -116,13 +121,13 @@ def shrinking(
 
     constants_list = list(constants.items())
 
+    # Aggregate list generation
+    aggregate_constants_name_list = {}
+    aggregate_constants_value_list = {}
+
     # Processing is performed only when the number of constant tensors to be processed is 2 or more
     if len(constants_list) >= 2:
-        # Aggregate list generation
-        aggregate_constants_name_list = {}
-        aggregate_constants_value_list = {}
         aggregate_constants_matched_list = [False] * len(constants_list)
-
         for comparator_idx in range(0, len(constants_list)-1):
             if not aggregate_constants_matched_list[comparator_idx]:
                 for comparison_dest_idx in range(comparator_idx+1, len(constants_list)):
@@ -142,6 +147,7 @@ def shrinking(
     aggregate_constants
     {'425': ['434', '5506'], '1646': ['1910', '2608', '2872', '3570', '3834'], '5550': ['4107']}
     """
+    # Automatic aggregation of constants
     npy_file_paths = []
     for layer_name_quoted_src, layer_name_quoted_dists in aggregate_constants_name_list.items():
         i = None
@@ -178,6 +184,61 @@ def shrinking(
                         graph.nodes[graph_node_idx].inputs[input_idx] = i
 
     graph.cleanup().toposort()
+
+
+    # Searches the entire model by the OP name specified in forced_extraction_op_names,
+    # and if an OP with a matching name is found, the constant is forced to be extracted to the .npy file.
+
+    # Constant Value Extraction
+    constants = {}
+    graph_nodes = [node for node in graph.nodes if node.name in forced_extraction_op_names]
+    for graph_node in graph_nodes:
+        for graph_node_input in graph_node.inputs:
+            if not isinstance(graph_node_input, Constant):
+                continue
+            if len(graph_node_input.shape) == 0:
+                continue
+            if np.isscalar(graph_node_input.values):
+                continue
+            constants[graph_node_input.name] = graph_node_input
+    if not non_verbose:
+        print(
+            f'{Color.GREEN}INFO:{Color.RESET} '+
+            f'Forced-extraction number of constant values to be studied: {len(constants)}'
+        )
+
+    constants_list = list(constants.items())
+
+    for constant_key, constant_value in constants_list:
+        i = None
+        # Export constant values to a numpy file
+        external_file_name = ''
+        if output_onnx_file_path:
+            external_file_name = \
+                f"{os.path.splitext(os.path.basename(output_onnx_file_path))[0]}" + \
+                f"_exported_{constant_key.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
+        else:
+            external_file_name = \
+                f"exported_{constant_key.replace(':','_').replace(';','_').replace('/','_').replace(',','_')}.npy"
+        np.save(
+            external_file_name,
+            constant_value.values
+        )
+        npy_file_paths.append(external_file_name)
+        # Generate Inputs
+        i = gs.Variable(
+            name=external_file_name,
+            dtype=constant_value.values.dtype,
+            shape=constant_value.values.shape,
+        )
+        for graph_node_idx, graph_node in enumerate(graph.nodes):
+            for input_idx, graph_node_input in enumerate(graph_node.inputs):
+                if graph_node_input.name == constant_key:
+                    graph.nodes[graph_node_idx].inputs[input_idx] = i
+        graph.inputs.append(i)
+
+    graph.cleanup().toposort()
+
     if not non_verbose:
         print(f'{Color.GREEN}INFO:{Color.RESET} Results:')
         pprint(aggregate_constants_name_list)
@@ -236,6 +297,15 @@ def main():
             Default: shrink"
     )
     parser.add_argument(
+        '--forced_extraction_op_names',
+        type=str,
+        help="\
+            Extracts the constant value of the specified OP name to .npy \
+            regardless of the mode specified. \
+            Specify the name of the OP, separated by commas. \
+            e.g. --forced_extraction_op_names aaa,bbb,ccc"
+    )
+    parser.add_argument(
         '--non_verbose',
         action='store_true',
         help='Do not show all information logs. Only error logs are displayed.'
@@ -253,13 +323,19 @@ def main():
         )
         sys.exit(1)
 
+    forced_extraction_op_names = args.forced_extraction_op_names.strip(' ,').replace(' ','').split(',')
+
     # Model shrink
     shrunken_graph, npy_file_paths = shrinking(
         input_onnx_file_path=args.input_onnx_file_path,
         output_onnx_file_path=args.output_onnx_file_path,
         mode=args.mode,
+        forced_extraction_op_names=forced_extraction_op_names,
         non_verbose=args.non_verbose
     )
 
     if not args.non_verbose:
         print(f'{Color.GREEN}INFO:{Color.RESET} Finish!')
+
+if __name__ == '__main__':
+    main()

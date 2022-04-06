@@ -9,7 +9,8 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 - [x] Ignore scalar values.
 - [x] Ignore variables.
 - [ ] ~Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process~ -> Temporarily abandoned because it turned out that the onnx-simplifier specification needed to be changed in a major way.
-- [ ] Implementation of a specification for separating the weight of a specified OP name to an external file.
+- [x] Implementation of a specification for separating the weight of a specified OP name to an external file.
+- [ ] Implementation of a specification for separating the weight of a specified Constant name to an external file.
 - [ ] Final work-around idea for breaking the 2GB limit, since the internal logic of onnx has a Protocol Buffers limit of 2GB checked. Recombine after optimization. Splitting and merging seems like it would be easy. For each partitioned onnx component, optimization is performed in the order of onnx-simplifier → scs4onnx to optimize the structure while keeping the buffer size to a minimum, and then the optimized components are recombined to reconstruct the whole graph. Finally, run scs4onnx again on the reconstructed, optimized overall graph to further reduce the model-wide constant.
 
 
@@ -43,7 +44,12 @@ $ cd /workdir
 $ scs4onnx -h
 
 usage:
-scs4onnx [-h] [--mode {shrink,npy}] [--non_verbose] input_onnx_file_path output_onnx_file_path
+  scs4onnx [-h]
+  [--mode {shrink,npy}]
+  [--forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES]
+  [--non_verbose]
+  input_onnx_file_path output_onnx_file_path
+
 
 positional arguments:
   input_onnx_file_path
@@ -52,8 +58,10 @@ positional arguments:
                         Output onnx file path.
 
 optional arguments:
-  -h, --help            show this help message and exit
-  --mode {shrink,npy}   Constant Value Compression Mode.
+  -h, --help
+                        show this help message and exit
+  --mode {shrink,npy}
+                        Constant Value Compression Mode.
                         shrink: Share constant values inside the model as much as possible.
                                 The model size is slightly larger because
                                 some shared constant values remain inside the model,
@@ -62,7 +70,13 @@ optional arguments:
                                 external file .npy. Instead of the smallest model body size,
                                 the file loading overhead is greater.
                         Default: shrink
-  --non_verbose         Do not show all information logs. Only error logs are displayed.
+  --forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES
+                        Extracts the constant value of the specified OP name to .npy
+                        regardless of the mode specified.
+                        Specify the name of the OP, separated by commas.
+                        e.g. --forced_extraction_op_names aaa,bbb,ccc
+  --non_verbose
+                        Do not show all information logs. Only error logs are displayed.
 ```
 
 ## 3. In-script Usage
@@ -78,6 +92,7 @@ shrinking(
   output_onnx_file_path: Union[str, NoneType] = '',
   onnx_graph: Union[onnx.onnx_ml_pb2.ModelProto, NoneType] = None,
   mode: Union[str, NoneType] = 'shrink',
+  forced_extraction_op_names: List[str] = [],
   non_verbose: Union[bool, NoneType] = False
 ) -> Tuple[onnx.onnx_ml_pb2.ModelProto, str]
 
@@ -104,6 +119,10 @@ shrinking(
         'npy': Outputs constant values used repeatedly in the model to an external file .npy.
             Instead of the smallest model body size, the file loading overhead is greater.
         Default: shrink
+
+    forced_extraction_op_names: List[str]
+        Extracts the constant value of the specified OP name to .npy
+        regardless of the mode specified. e.g. ['aaa','bbb','ccc']
 
     non_verbose: Optional[bool]
         Do not show all information logs. Only error logs are displayed.
