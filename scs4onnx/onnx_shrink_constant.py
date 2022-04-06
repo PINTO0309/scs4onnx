@@ -2,6 +2,7 @@
 
 import os
 import sys
+import traceback
 from pprint import pprint
 from argparse import ArgumentParser
 import numpy as np
@@ -112,6 +113,22 @@ def shrinking(
                 continue
             if np.isscalar(graph_node_input.values):
                 continue
+
+            # Try downcast
+            ### INT64 -> INT32
+            if graph_node_input.values.dtype == np.int64:
+                orig = graph_node_input.values
+                dist = graph_node_input.values.astype(np.int32)
+                if (orig == dist).all():
+                    graph_node_input.values = dist
+
+            ### Float64 -> Float32
+            if graph_node_input.values.dtype == np.float64:
+                orig = graph_node_input.values
+                dist = graph_node_input.values.astype(np.float32)
+                if (orig == dist).all():
+                    graph_node_input.values = dist
+
             constants[graph_node_input.name] = graph_node_input
     if not non_verbose:
         print(
@@ -251,7 +268,7 @@ def shrinking(
     new_model = None
     try:
         new_model = onnx.shape_inference.infer_shapes(shrunken_graph)
-    except:
+    except Exception as e:
         new_model = shrunken_graph
         if not non_verbose:
             print(
@@ -259,6 +276,8 @@ def shrinking(
                 'The input shape of the next OP does not match the output shape. '+
                 'Be sure to open the .onnx file to verify the certainty of the geometry.'
             )
+            tracetxt = traceback.format_exc().splitlines()[-1]
+            print(f'{Color.YELLOW}WARNING:{Color.RESET} {tracetxt}')
 
     # Save
     if output_onnx_file_path:
@@ -299,6 +318,7 @@ def main():
     parser.add_argument(
         '--forced_extraction_op_names',
         type=str,
+        default='',
         help="\
             Extracts the constant value of the specified OP name to .npy \
             regardless of the mode specified. \
