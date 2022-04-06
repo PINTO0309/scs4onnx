@@ -36,6 +36,10 @@ class Color:
     BG_DEFAULT     = '\033[49m'
     RESET          = '\033[0m'
 
+OP_TO_BE_EXCLUDED_FROM_DOWNCAST_PROCESSING = [
+    "ConstantOfShape",
+    "Concat",
+]
 
 def shrinking(
     input_onnx_file_path: Optional[str] = '',
@@ -43,6 +47,7 @@ def shrinking(
     onnx_graph: Optional[onnx.ModelProto] = None,
     mode: Optional[str] = 'shrink',
     forced_extraction_op_names: List[str] = [],
+    disable_auto_downcast: Optional[bool] = False,
     non_verbose: Optional[bool] = False,
 ) -> Tuple[onnx.ModelProto, List[str]]:
 
@@ -74,6 +79,11 @@ def shrinking(
     forced_extraction_op_names: List[str]
         Extracts the constant value of the specified OP name to .npy regardless of the mode specified.\n\
         e.g. ['aaa','bbb','ccc']
+
+    disable_auto_downcast: Optional[bool]
+        Disables automatic downcast processing from Float64 to Float32 and INT64 to INT32.\n\
+        Try enabling it and re-running it if you encounter type-related errors.\n\
+        Default: False
 
     non_verbose: Optional[bool]
         Do not show all information logs. Only error logs are displayed.\n\
@@ -115,21 +125,26 @@ def shrinking(
                 continue
 
             # Try downcast
-            ### INT64 -> INT32
-            if graph_node_input.values.dtype == np.int64:
-                orig = graph_node_input.values
-                dist = graph_node_input.values.astype(np.int32)
-                if (orig == dist).all():
-                    graph_node_input.values = dist
+            if not disable_auto_downcast \
+                and len(graph_node_input.outputs) > 0 \
+                and graph_node_input.outputs[0].op not in OP_TO_BE_EXCLUDED_FROM_DOWNCAST_PROCESSING:
 
-            ### Float64 -> Float32
-            if graph_node_input.values.dtype == np.float64:
-                orig = graph_node_input.values
-                dist = graph_node_input.values.astype(np.float32)
-                if (orig == dist).all():
-                    graph_node_input.values = dist
+                ### INT64 -> INT32
+                if graph_node_input.values.dtype == np.int64:
+                    orig = graph_node_input.values
+                    dist = graph_node_input.values.astype(np.int32)
+                    if (orig == dist).all():
+                        graph_node_input.values = dist
+
+                ### Float64 -> Float32
+                if graph_node_input.values.dtype == np.float64:
+                    orig = graph_node_input.values
+                    dist = graph_node_input.values.astype(np.float32)
+                    if (orig == dist).all():
+                        graph_node_input.values = dist
 
             constants[graph_node_input.name] = graph_node_input
+
     if not non_verbose:
         print(
             f'{Color.GREEN}INFO:{Color.RESET} '+
@@ -326,6 +341,13 @@ def main():
             e.g. --forced_extraction_op_names aaa,bbb,ccc"
     )
     parser.add_argument(
+        '--disable_auto_downcast',
+        action='store_true',
+        help="\
+            Disables automatic downcast processing from Float64 to Float32 and INT64 to INT32. \
+            Try enabling it and re-running it if you encounter type-related errors."
+    )
+    parser.add_argument(
         '--non_verbose',
         action='store_true',
         help='Do not show all information logs. Only error logs are displayed.'
@@ -351,6 +373,7 @@ def main():
         output_onnx_file_path=args.output_onnx_file_path,
         mode=args.mode,
         forced_extraction_op_names=forced_extraction_op_names,
+        disable_auto_downcast=args.disable_auto_downcast,
         non_verbose=args.non_verbose
     )
 

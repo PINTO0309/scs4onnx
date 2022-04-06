@@ -48,6 +48,7 @@ usage:
   scs4onnx [-h]
   [--mode {shrink,npy}]
   [--forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES]
+  [--disable_auto_downcast]
   [--non_verbose]
   input_onnx_file_path output_onnx_file_path
 
@@ -76,6 +77,10 @@ optional arguments:
                         regardless of the mode specified.
                         Specify the name of the OP, separated by commas.
                         e.g. --forced_extraction_op_names aaa,bbb,ccc
+  --disable_auto_downcast
+                        Disables automatic downcast processing from Float64 to Float32 and INT64
+                        to INT32. Try enabling it and re-running it if you encounter type-related
+                        errors.
   --non_verbose
                         Do not show all information logs. Only error logs are displayed.
 ```
@@ -94,6 +99,7 @@ shrinking(
   onnx_graph: Union[onnx.onnx_ml_pb2.ModelProto, NoneType] = None,
   mode: Union[str, NoneType] = 'shrink',
   forced_extraction_op_names: List[str] = [],
+  disable_auto_downcast: Union[bool, NoneType] = False
   non_verbose: Union[bool, NoneType] = False
 ) -> Tuple[onnx.onnx_ml_pb2.ModelProto, str]
 
@@ -124,6 +130,11 @@ shrinking(
     forced_extraction_op_names: List[str]
         Extracts the constant value of the specified OP name to .npy
         regardless of the mode specified. e.g. ['aaa','bbb','ccc']
+
+    disable_auto_downcast: Optional[bool]
+        Disables automatic downcast processing from Float64 to Float32 and INT64 to INT32.
+        Try enabling it and re-running it if you encounter type-related errors.
+        Default: False
 
     non_verbose: Optional[bool]
         Do not show all information logs. Only error logs are displayed.
@@ -179,7 +190,7 @@ shrunk_graph, npy_file_paths = shrinking(
   ```bash
   $ scs4onnx gmflow_sintel_480x640.onnx gmflow_sintel_480x640_opt.onnx
   ```
-  
+
   ![image](https://user-images.githubusercontent.com/33194443/161478190-301428b2-6ae7-4e59-bd56-d17e6a7bbe50.png)
   ![image](https://user-images.githubusercontent.com/33194443/161479347-af571cef-2162-4581-bc61-aca74bd2f387.png)
 
@@ -188,7 +199,7 @@ shrunk_graph, npy_file_paths = shrinking(
   ```bash
   $ scs4onnx hitnet_sf_finalpass_720x960.onnx hitnet_sf_finalpass_720x960_opt.onnx
   ```
-  
+
   ![image](https://user-images.githubusercontent.com/33194443/161931579-8b656482-9608-4fe4-91c3-93465280634c.png)
 
 - 1.8GB -> 2.1MB (.onnx) + 884.7MB (.npy)
@@ -199,7 +210,7 @@ shrunk_graph, npy_file_paths = shrinking(
   hitnet_sf_finalpass_720x960_opt.onnx \
   --forced_extraction_op_names GatherElements_660
   ```
-  
+
   ![image](https://user-images.githubusercontent.com/33194443/161932394-da8917b6-31c0-4e79-917d-9c3109325392.png)
   ![image](https://user-images.githubusercontent.com/33194443/161933802-4a3a055c-a1cb-4b46-a89f-de8611a0671a.png)
   ![image](https://user-images.githubusercontent.com/33194443/161935942-78740546-11d5-473b-be7c-7ce4879546e7.png)
