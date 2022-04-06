@@ -202,7 +202,7 @@ shrunk_graph, npy_file_paths = shrinking(
   
   ![image](https://user-images.githubusercontent.com/33194443/161932394-da8917b6-31c0-4e79-917d-9c3109325392.png)
   ![image](https://user-images.githubusercontent.com/33194443/161933802-4a3a055c-a1cb-4b46-a89f-de8611a0671a.png)
-
+  ![image](https://user-images.githubusercontent.com/33194443/161935583-53a960f6-d2a0-4450-95e8-54e095539aa2.png)
 
 ### 5-2. **`npy`** mode sample
 - 297.8MB -> 21.3MB
