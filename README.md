@@ -174,7 +174,7 @@ shrunk_graph, npy_file_paths = shrinking(
 
 ## 5. Sample
 ### 5-1. **`shrink`** mode sample
-- 297.8MB -> 67.4MB
+- 297.8MB -> 67.4MB (.onnx)
 
   ```bash
   $ scs4onnx gmflow_sintel_480x640.onnx gmflow_sintel_480x640_opt.onnx
@@ -205,7 +205,7 @@ shrunk_graph, npy_file_paths = shrinking(
   ![image](https://user-images.githubusercontent.com/33194443/161935942-78740546-11d5-473b-be7c-7ce4879546e7.png)
 
 ### 5-2. **`npy`** mode sample
-- 297.8MB -> 21.3MB
+- 297.8MB -> 21.3MB (.onnx)
 
   ![image](https://user-images.githubusercontent.com/33194443/161477818-9cce1821-a471-4dd5-90d2-d46f7c4576b9.png)
   ![image](https://user-images.githubusercontent.com/33194443/161479281-58df1cd6-cfcc-44d0-a4e9-234adc7e3f7a.png)
