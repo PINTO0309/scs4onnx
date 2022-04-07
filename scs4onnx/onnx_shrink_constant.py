@@ -59,7 +59,7 @@ def shrinking(
         Either input_onnx_file_path or onnx_graph must be specified.
 
     output_onnx_file_path: Optional[str]
-        Outpu onnx file path.\n\
+        Output onnx file path.\n\
         If output_onnx_file_path is not specified, no .onnx file is output.
 
     onnx_graph: Optional[onnx.ModelProto]
