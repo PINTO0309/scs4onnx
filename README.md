@@ -110,7 +110,7 @@ shrinking(
         Either input_onnx_file_path or onnx_graph must be specified.
 
     output_onnx_file_path: Optional[str]
-        Outpu onnx file path.
+        Output onnx file path.
         If output_onnx_file_path is not specified, no .onnx file is output.
 
     onnx_graph: Optional[onnx.ModelProto]
