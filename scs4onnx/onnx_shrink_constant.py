@@ -47,6 +47,7 @@ def shrinking(
     onnx_graph: Optional[onnx.ModelProto] = None,
     mode: Optional[str] = 'shrink',
     forced_extraction_op_names: List[str] = [],
+    forced_extraction_constant_names: List[str] = [],
     disable_auto_downcast: Optional[bool] = False,
     non_verbose: Optional[bool] = False,
 ) -> Tuple[onnx.ModelProto, List[str]]:
@@ -78,6 +79,12 @@ def shrinking(
 
     forced_extraction_op_names: List[str]
         Extracts the constant value of the specified OP name to .npy regardless of the mode specified.\n\
+        Cannot be used with forced_extraction_constant_names at the same time.\n\
+        e.g. ['aaa','bbb','ccc']
+
+    forced_extraction_constant_names: List[str]
+        Extracts the constant value of the specified Constant name to .npy regardless of the mode specified.\n\
+        Cannot be used with forced_extraction_op_names at the same time.\n\
         e.g. ['aaa','bbb','ccc']
 
     disable_auto_downcast: Optional[bool]
@@ -218,10 +225,11 @@ def shrinking(
     graph.cleanup().toposort()
 
 
-    # Searches the entire model by the OP name specified in forced_extraction_op_names,
+    # Searches the entire model by the OP name specified in forced_extraction_op_names/forced_extraction_constant_names,
     # and if an OP with a matching name is found, the constant is forced to be extracted to the .npy file.
 
     # Constant Value Extraction
+    # 1. OP Name
     constants = {}
     graph_nodes = [node for node in graph.nodes if node.name in forced_extraction_op_names]
     for graph_node in graph_nodes:
@@ -233,6 +241,19 @@ def shrinking(
             if np.isscalar(graph_node_input.values):
                 continue
             constants[graph_node_input.name] = graph_node_input
+
+    # 2. Constant Name
+    for graph_node in graph.nodes:
+        for graph_node_input in graph_node.inputs:
+            if graph_node_input.name in forced_extraction_constant_names:
+                if not isinstance(graph_node_input, Constant):
+                    continue
+                if len(graph_node_input.shape) == 0:
+                    continue
+                if np.isscalar(graph_node_input.values):
+                    continue
+                constants[graph_node_input.name] = graph_node_input
+
     if not non_verbose:
         print(
             f'{Color.GREEN}INFO:{Color.RESET} '+
@@ -338,7 +359,19 @@ def main():
             Extracts the constant value of the specified OP name to .npy \
             regardless of the mode specified. \
             Specify the name of the OP, separated by commas. \
+            Cannot be used with --forced_extraction_constant_names at the same time. \
             e.g. --forced_extraction_op_names aaa,bbb,ccc"
+    )
+    parser.add_argument(
+        '--forced_extraction_constant_names',
+        type=str,
+        default='',
+        help="\
+            Extracts the constant value of the specified Constant name to .npy \
+            regardless of the mode specified. \
+            Specify the name of the Constant, separated by commas. \
+            Cannot be used with --forced_extraction_op_names at the same time. \
+            e.g. --forced_extraction_constant_names aaa,bbb,ccc"
     )
     parser.add_argument(
         '--disable_auto_downcast',
@@ -366,6 +399,18 @@ def main():
         sys.exit(1)
 
     forced_extraction_op_names = args.forced_extraction_op_names.strip(' ,').replace(' ','').split(',')
+    forced_extraction_op_names = [op_name for op_name in forced_extraction_op_names if op_name != '']
+    forced_extraction_constant_names = args.forced_extraction_constant_names.strip(' ,').replace(' ','').split(',')
+    forced_extraction_constant_names = [op_name for op_name in forced_extraction_constant_names if op_name != '']
+
+    if len(forced_extraction_op_names) > 0 and len(forced_extraction_constant_names) > 0:
+        print(
+            f'{Color.RED}ERROR:{Color.RESET} '+
+            f'Only one of forced_extraction_op_names and forced_extraction_constant_names can be specified. '+
+            f'--forced_extraction_op_names: {forced_extraction_op_names}, '+
+            f'--forced_extraction_constant_names: {forced_extraction_constant_names}'
+        )
+        sys.exit(1)
 
     # Model shrink
     shrunken_graph, npy_file_paths = shrinking(
@@ -373,6 +418,7 @@ def main():
         output_onnx_file_path=args.output_onnx_file_path,
         mode=args.mode,
         forced_extraction_op_names=forced_extraction_op_names,
+        forced_extraction_constant_names=forced_extraction_constant_names,
         disable_auto_downcast=args.disable_auto_downcast,
         non_verbose=args.non_verbose
     )

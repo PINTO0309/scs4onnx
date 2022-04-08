@@ -10,11 +10,9 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 - [x] Ignore variables.
 - [ ] ~Finally, create a Fork of **[onnx-simplifier](https://github.com/daquexian/onnx-simplifier)** and merge this process just before the onnx file output process~ -> Temporarily abandoned because it turned out that the onnx-simplifier specification needed to be changed in a major way.
 - [x] Implementation of a specification for separating the weight of a specified OP name to an external file.
-- [ ] Implementation of a specification for separating the weight of a specified Constant name to an external file.
+- [x] Implementation of a specification for separating the weight of a specified Constant name to an external file.
 - [x] Added option to downcast from Float64 to Float32 and INT64 to INT32 to attempt size compression.
 - [x] Post an issue of onnx-simplifier. [Excessive bloating of ONNX files due to over-efficient conversion of "Tile" to constants (Protocol Buffers .onnx > 2GB) #178](https://github.com/daquexian/onnx-simplifier/issues/178)
-- [ ] Final work-around idea for breaking the 2GB limit, since the internal logic of onnx has a Protocol Buffers limit of 2GB checked. Recombine after optimization. Splitting and merging seems like it would be easy. For each partitioned onnx component, optimization is performed in the order of onnx-simplifier → scs4onnx to optimize the structure while keeping the buffer size to a minimum, and then the optimized components are recombined to reconstruct the whole graph. Finally, run scs4onnx again on the reconstructed, optimized overall graph to further reduce the model-wide constant.
-
 
 ## 1. Setup
 ### 1-1. HostPC
@@ -49,6 +47,7 @@ usage:
   scs4onnx [-h]
   [--mode {shrink,npy}]
   [--forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES]
+  [--forced_extraction_constant_names FORCED_EXTRACTION_CONSTANT_NAMES]
   [--disable_auto_downcast]
   [--non_verbose]
   input_onnx_file_path output_onnx_file_path
@@ -77,7 +76,14 @@ optional arguments:
                         Extracts the constant value of the specified OP name to .npy
                         regardless of the mode specified.
                         Specify the name of the OP, separated by commas.
+                        Cannot be used with --forced_extraction_constant_names at the same time.
                         e.g. --forced_extraction_op_names aaa,bbb,ccc
+  --forced_extraction_constant_names FORCED_EXTRACTION_CONSTANT_NAMES
+                        Extracts the constant value of the specified Constant name to .npy
+                        regardless of the mode specified.
+                        Specify the name of the Constant, separated by commas.
+                        Cannot be used with --forced_extraction_op_names at the same time.
+                        e.g. --forced_extraction_constant_names aaa,bbb,ccc
   --disable_auto_downcast
                         Disables automatic downcast processing from Float64 to Float32 and INT64
                         to INT32. Try enabling it and re-running it if you encounter type-related
@@ -100,6 +106,7 @@ shrinking(
   onnx_graph: Union[onnx.onnx_ml_pb2.ModelProto, NoneType] = None,
   mode: Union[str, NoneType] = 'shrink',
   forced_extraction_op_names: List[str] = [],
+  forced_extraction_constant_names: List[str] = [],
   disable_auto_downcast: Union[bool, NoneType] = False
   non_verbose: Union[bool, NoneType] = False
 ) -> Tuple[onnx.onnx_ml_pb2.ModelProto, str]
@@ -130,7 +137,15 @@ shrinking(
 
     forced_extraction_op_names: List[str]
         Extracts the constant value of the specified OP name to .npy
-        regardless of the mode specified. e.g. ['aaa','bbb','ccc']
+        regardless of the mode specified.
+        Cannot be used with --forced_extraction_constant_names at the same time.
+        e.g. ['aaa','bbb','ccc']
+
+    forced_extraction_constant_names: List[str]
+        Extracts the constant value of the specified Constant name to .npy
+        regardless of the mode specified.
+        Cannot be used with --forced_extraction_op_names at the same time.
+        e.g. ['aaa','bbb','ccc']
 
     disable_auto_downcast: Optional[bool]
         Disables automatic downcast processing from Float64 to Float32 and INT64 to INT32.
@@ -215,6 +230,19 @@ shrunk_graph, npy_file_paths = shrinking(
   ![image](https://user-images.githubusercontent.com/33194443/161932394-da8917b6-31c0-4e79-917d-9c3109325392.png)
   ![image](https://user-images.githubusercontent.com/33194443/161933802-4a3a055c-a1cb-4b46-a89f-de8611a0671a.png)
   ![image](https://user-images.githubusercontent.com/33194443/161935942-78740546-11d5-473b-be7c-7ce4879546e7.png)
+
+- 297.8MB -> 21.3MB (.onnx) + 46.1MB (.npy)
+
+  ```bash
+  $ scs4onnx \
+  gmflow_sintel_480x640.onnx \
+  gmflow_sintel_480x640_opt.onnx \
+  --forced_extraction_constant_names 1646
+  ```
+
+  ![image](https://user-images.githubusercontent.com/33194443/162340537-dddc96f9-a970-434c-904c-ab19499fd359.png)
+  ![image](https://user-images.githubusercontent.com/33194443/162340349-a9fe7fae-fcfb-4097-8274-ddb309175b84.png)
+  ![image](https://user-images.githubusercontent.com/33194443/162340783-54493507-2a4f-4cee-923a-9a62e8de53ce.png)
 
 ### 5-2. **`npy`** mode sample
 - 297.8MB -> 21.3MB (.onnx)
