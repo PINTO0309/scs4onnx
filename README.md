@@ -269,8 +269,8 @@ array([[[   0.,    0.,    0., ...,    0.,    0.,    0.],
 ```
 
 ## 6. Sample ONNX models
-1. [gmflow_sintel_480x640.onnx](https://github.com/PINTO0309/scs4onnx/releases/download/1.0.11/gmflow_sintel_480x640.onnx.zip) - Optical flow calculation
-2. [hitnet_sf_finalpass_720x960.onnx](https://github.com/PINTO0309/scs4onnx/releases/download/1.0.11/hitnet_sf_finalpass_720x960.onnx.zip) - Stereo depth estimation
+1. [gmflow_sintel_480x640.onnx](https://github.com/PINTO0309/scs4onnx/releases/download/1.0.11/gmflow_sintel_480x640.onnx.zip) - Optical flow calculation - [LICENSE Apache License 2.0](https://github.com/haofeixu/gmflow/blob/main/LICENSE)
+2. [hitnet_sf_finalpass_720x960.onnx](https://github.com/PINTO0309/scs4onnx/releases/download/1.0.11/hitnet_sf_finalpass_720x960.onnx.zip) - Stereo depth estimation - [LICENSE Apache License 2.0](https://github.com/PINTO0309/PINTO_model_zoo/blob/main/258_TinyHITNet/LICENSE)
 
 ## 7. Reference
 1. https://docs.nvidia.com/deeplearning/tensorrt/onnx-graphsurgeon/docs/index.html
