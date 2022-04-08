@@ -13,6 +13,7 @@ A very simple tool that compresses the overall size of the ONNX model by aggrega
 - [x] Implementation of a specification for separating the weight of a specified Constant name to an external file.
 - [x] Added option to downcast from Float64 to Float32 and INT64 to INT32 to attempt size compression.
 - [x] Post an issue of onnx-simplifier. [Excessive bloating of ONNX files due to over-efficient conversion of "Tile" to constants (Protocol Buffers .onnx > 2GB) #178](https://github.com/daquexian/onnx-simplifier/issues/178)
+- [x] Add sample onnx models.
 
 ## 1. Setup
 ### 1-1. HostPC
@@ -267,7 +268,11 @@ array([[[   0.,    0.,    0., ...,    0.,    0.,    0.],
         [-100., -100., -100., ...,    0.,    0.,    0.]]], dtype=float32)
 ```
 
-## 6. Reference
+## 6. Sample ONNX models
+1. [gmflow_sintel_480x640.onnx](https://github.com/PINTO0309/scs4onnx/releases/download/1.0.11/gmflow_sintel_480x640.onnx.zip) - Optical flow calculation
+2. [hitnet_sf_finalpass_720x960.onnx](https://github.com/PINTO0309/scs4onnx/releases/download/1.0.11/hitnet_sf_finalpass_720x960.onnx.zip) - Stereo depth estimation
+
+## 7. Reference
 1. https://docs.nvidia.com/deeplearning/tensorrt/onnx-graphsurgeon/docs/index.html
 2. https://github.com/NVIDIA/TensorRT/tree/main/tools/onnx-graphsurgeon
 3. https://github.com/PINTO0309/sne4onnx
