@@ -243,16 +243,17 @@ def shrinking(
             constants[graph_node_input.name] = graph_node_input
 
     # 2. Constant Name
-    for graph_node in graph.nodes:
-        for graph_node_input in graph_node.inputs:
-            if graph_node_input.name in forced_extraction_constant_names:
-                if not isinstance(graph_node_input, Constant):
-                    continue
-                if len(graph_node_input.shape) == 0:
-                    continue
-                if np.isscalar(graph_node_input.values):
-                    continue
-                constants[graph_node_input.name] = graph_node_input
+    if len(forced_extraction_constant_names) > 0:
+        for graph_node in graph.nodes:
+            for graph_node_input in graph_node.inputs:
+                if graph_node_input.name in forced_extraction_constant_names:
+                    if not isinstance(graph_node_input, Constant):
+                        continue
+                    if len(graph_node_input.shape) == 0:
+                        continue
+                    if np.isscalar(graph_node_input.values):
+                        continue
+                    constants[graph_node_input.name] = graph_node_input
 
     if not non_verbose:
         print(
