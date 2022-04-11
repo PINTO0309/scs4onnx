@@ -1,6 +1,8 @@
 # scs4onnx
 A very simple tool that compresses the overall size of the ONNX model by aggregating duplicate constant values as much as possible. **S**imple **C**onstant value **S**hrink for **ONNX**.
 
+https://github.com/PINTO0309/simple-onnx-processing-tools
+
 [![Downloads](https://static.pepy.tech/personalized-badge/scs4onnx?period=total&units=none&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/scs4onnx) ![GitHub](https://img.shields.io/github/license/PINTO0309/scs4onnx?color=2BAF2B) [![PyPI](https://img.shields.io/pypi/v/scs4onnx?color=2BAF2B)](https://pypi.org/project/scs4onnx/) [![CodeQL](https://github.com/PINTO0309/scs4onnx/workflows/CodeQL/badge.svg)](https://github.com/PINTO0309/scs4onnx/actions?query=workflow%3ACodeQL)
 
 # Key concept
