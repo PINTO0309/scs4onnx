@@ -280,4 +280,5 @@ array([[[   0.,    0.,    0., ...,    0.,    0.,    0.],
 3. https://github.com/PINTO0309/sne4onnx
 4. https://github.com/PINTO0309/snd4onnx
 5. https://github.com/PINTO0309/snc4onnx
-6. https://github.com/PINTO0309/PINTO_model_zoo
+6. https://github.com/PINTO0309/sog4onnx
+7. https://github.com/PINTO0309/PINTO_model_zoo
