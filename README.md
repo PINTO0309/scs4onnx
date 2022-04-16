@@ -59,12 +59,14 @@ usage:
 positional arguments:
   input_onnx_file_path
         Input onnx file path.
+
   output_onnx_file_path
         Output onnx file path.
 
 optional arguments:
   -h, --help
         show this help message and exit
+
   --mode {shrink,npy}
         Constant Value Compression Mode.
         shrink: Share constant values inside the model as much as possible.
@@ -75,22 +77,26 @@ optional arguments:
                 external file .npy. Instead of the smallest model body size,
                 the file loading overhead is greater.
         Default: shrink
+
   --forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES
         Extracts the constant value of the specified OP name to .npy
         regardless of the mode specified.
         Specify the name of the OP, separated by commas.
         Cannot be used with --forced_extraction_constant_names at the same time.
         e.g. --forced_extraction_op_names aaa,bbb,ccc
+
   --forced_extraction_constant_names FORCED_EXTRACTION_CONSTANT_NAMES
         Extracts the constant value of the specified Constant name to .npy
         regardless of the mode specified.
         Specify the name of the Constant, separated by commas.
         Cannot be used with --forced_extraction_op_names at the same time.
         e.g. --forced_extraction_constant_names aaa,bbb,ccc
+
   --disable_auto_downcast
         Disables automatic downcast processing from Float64 to Float32 and INT64
         to INT32. Try enabling it and re-running it if you encounter type-related
         errors.
+
   --non_verbose
         Do not show all information logs. Only error logs are displayed.
 ```
