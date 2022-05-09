@@ -231,19 +231,20 @@ def shrinking(
     # Constant Value Extraction
     # 1. OP Name
     constants = {}
-    graph_nodes = [node for node in graph.nodes if node.name in forced_extraction_op_names]
-    for graph_node in graph_nodes:
-        for graph_node_input in graph_node.inputs:
-            if not isinstance(graph_node_input, Constant):
-                continue
-            if len(graph_node_input.shape) == 0:
-                continue
-            if np.isscalar(graph_node_input.values):
-                continue
-            constants[graph_node_input.name] = graph_node_input
+    if forced_extraction_op_names:
+        graph_nodes = [node for node in graph.nodes if node.name in forced_extraction_op_names]
+        for graph_node in graph_nodes:
+            for graph_node_input in graph_node.inputs:
+                if not isinstance(graph_node_input, Constant):
+                    continue
+                if len(graph_node_input.shape) == 0:
+                    continue
+                if np.isscalar(graph_node_input.values):
+                    continue
+                constants[graph_node_input.name] = graph_node_input
 
     # 2. Constant Name
-    if len(forced_extraction_constant_names) > 0:
+    if forced_extraction_constant_names:
         for graph_node in graph.nodes:
             for graph_node_input in graph_node.inputs:
                 if graph_node_input.name in forced_extraction_constant_names:
@@ -355,24 +356,22 @@ def main():
     parser.add_argument(
         '--forced_extraction_op_names',
         type=str,
-        default='',
+        nargs='+',
         help="\
             Extracts the constant value of the specified OP name to .npy \
             regardless of the mode specified. \
-            Specify the name of the OP, separated by commas. \
             Cannot be used with --forced_extraction_constant_names at the same time. \
-            e.g. --forced_extraction_op_names aaa,bbb,ccc"
+            e.g. --forced_extraction_op_names aaa bbb ccc"
     )
     parser.add_argument(
         '--forced_extraction_constant_names',
         type=str,
-        default='',
+        nargs='+',
         help="\
             Extracts the constant value of the specified Constant name to .npy \
             regardless of the mode specified. \
-            Specify the name of the Constant, separated by commas. \
             Cannot be used with --forced_extraction_op_names at the same time. \
-            e.g. --forced_extraction_constant_names aaa,bbb,ccc"
+            e.g. --forced_extraction_constant_names aaa bbb ccc"
     )
     parser.add_argument(
         '--disable_auto_downcast',
@@ -399,12 +398,10 @@ def main():
         )
         sys.exit(1)
 
-    forced_extraction_op_names = args.forced_extraction_op_names.strip(' ,').replace(' ','').split(',')
-    forced_extraction_op_names = [op_name for op_name in forced_extraction_op_names if op_name != '']
-    forced_extraction_constant_names = args.forced_extraction_constant_names.strip(' ,').replace(' ','').split(',')
-    forced_extraction_constant_names = [op_name for op_name in forced_extraction_constant_names if op_name != '']
+    forced_extraction_op_names = args.forced_extraction_op_names
+    forced_extraction_constant_names = args.forced_extraction_constant_names
 
-    if len(forced_extraction_op_names) > 0 and len(forced_extraction_constant_names) > 0:
+    if forced_extraction_op_names and forced_extraction_constant_names:
         print(
             f'{Color.RED}ERROR:{Color.RESET} '+
             f'Only one of forced_extraction_op_names and forced_extraction_constant_names can be specified. '+

@@ -71,16 +71,14 @@ optional arguments:
   --forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES
         Extracts the constant value of the specified OP name to .npy
         regardless of the mode specified.
-        Specify the name of the OP, separated by commas.
         Cannot be used with --forced_extraction_constant_names at the same time.
-        e.g. --forced_extraction_op_names aaa,bbb,ccc
+        e.g. --forced_extraction_op_names aaa bbb ccc
 
   --forced_extraction_constant_names FORCED_EXTRACTION_CONSTANT_NAMES
         Extracts the constant value of the specified Constant name to .npy
         regardless of the mode specified.
-        Specify the name of the Constant, separated by commas.
         Cannot be used with --forced_extraction_op_names at the same time.
-        e.g. --forced_extraction_constant_names aaa,bbb,ccc
+        e.g. --forced_extraction_constant_names aaa bbb ccc
 
   --disable_auto_downcast
         Disables automatic downcast processing from Float64 to Float32 and INT64
