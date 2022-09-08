@@ -52,14 +52,14 @@ usage:
 
 positional arguments:
   input_onnx_file_path
-        Input onnx file path.
+    Input onnx file path.
 
   output_onnx_file_path
-        Output onnx file path.
+    Output onnx file path.
 
 optional arguments:
   -h, --help
-        show this help message and exit
+    show this help message and exit
 
   -m {shrink,npy}, --mode {shrink,npy}
     Constant Value Compression Mode.
