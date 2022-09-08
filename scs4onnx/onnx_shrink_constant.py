@@ -337,6 +337,7 @@ def main():
         help='Output onnx file path.'
     )
     parser.add_argument(
+        '-m',
         '--mode',
         type=str,
         choices=[
@@ -354,6 +355,7 @@ def main():
             Default: shrink"
     )
     parser.add_argument(
+        '-fo',
         '--forced_extraction_op_names',
         type=str,
         nargs='+',
@@ -364,6 +366,7 @@ def main():
             e.g. --forced_extraction_op_names aaa bbb ccc"
     )
     parser.add_argument(
+        '-fc',
         '--forced_extraction_constant_names',
         type=str,
         nargs='+',
@@ -374,6 +377,7 @@ def main():
             e.g. --forced_extraction_constant_names aaa bbb ccc"
     )
     parser.add_argument(
+        '-d',
         '--disable_auto_downcast',
         action='store_true',
         help="\
@@ -381,6 +385,7 @@ def main():
             Try enabling it and re-running it if you encounter type-related errors."
     )
     parser.add_argument(
+        '-n',
         '--non_verbose',
         action='store_true',
         help='Do not show all information logs. Only error logs are displayed.'

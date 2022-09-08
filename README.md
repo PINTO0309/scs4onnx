@@ -37,16 +37,16 @@ $ pip install -U onnx \
 https://github.com/PINTO0309/simple-onnx-processing-tools#docker
 
 ## 2. CLI Usage
-```bash
+```
 $ scs4onnx -h
 
 usage:
   scs4onnx [-h]
-  [--mode {shrink,npy}]
-  [--forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES]
-  [--forced_extraction_constant_names FORCED_EXTRACTION_CONSTANT_NAMES]
-  [--disable_auto_downcast]
-  [--non_verbose]
+  [-m {shrink,npy}]
+  [-fo FORCED_EXTRACTION_OP_NAMES]
+  [-fc FORCED_EXTRACTION_CONSTANT_NAMES]
+  [-d]
+  [-n]
   input_onnx_file_path output_onnx_file_path
 
 
@@ -61,36 +61,36 @@ optional arguments:
   -h, --help
         show this help message and exit
 
-  --mode {shrink,npy}
-        Constant Value Compression Mode.
-        shrink: Share constant values inside the model as much as possible.
-                The model size is slightly larger because
-                some shared constant values remain inside the model,
-                but performance is maximized.
-        npy:    Outputs constant values used repeatedly in the model to an
-                external file .npy. Instead of the smallest model body size,
-                the file loading overhead is greater.
-        Default: shrink
+  -m {shrink,npy}, --mode {shrink,npy}
+    Constant Value Compression Mode.
+    shrink: Share constant values inside the model as much as possible.
+            The model size is slightly larger because
+            some shared constant values remain inside the model,
+            but performance is maximized.
+    npy:    Outputs constant values used repeatedly in the model to an
+            external file .npy. Instead of the smallest model body size,
+            the file loading overhead is greater.
+    Default: shrink
 
-  --forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES
-        Extracts the constant value of the specified OP name to .npy
-        regardless of the mode specified.
-        Cannot be used with --forced_extraction_constant_names at the same time.
-        e.g. --forced_extraction_op_names aaa bbb ccc
+  -fo FORCED_EXTRACTION_OP_NAMES [FORCED_EXTRACTION_OP_NAMES ...], --forced_extraction_op_names FORCED_EXTRACTION_OP_NAMES [FORCED_EXTRACTION_OP_NAMES ...]
+    Extracts the constant value of the specified OP name to .npy
+    regardless of the mode specified.
+    Cannot be used with --forced_extraction_constant_names at the same time.
+    e.g. --forced_extraction_op_names aaa bbb ccc
 
-  --forced_extraction_constant_names FORCED_EXTRACTION_CONSTANT_NAMES
-        Extracts the constant value of the specified Constant name to .npy
-        regardless of the mode specified.
-        Cannot be used with --forced_extraction_op_names at the same time.
-        e.g. --forced_extraction_constant_names aaa bbb ccc
+  -fc FORCED_EXTRACTION_CONSTANT_NAMES [FORCED_EXTRACTION_CONSTANT_NAMES ...], --forced_extraction_constant_names FORCED_EXTRACTION_CONSTANT_NAMES [FORCED_EXTRACTION_CONSTANT_NAMES ...]
+    Extracts the constant value of the specified Constant name to .npy
+    regardless of the mode specified.
+    Cannot be used with --forced_extraction_op_names at the same time.
+    e.g. --forced_extraction_constant_names aaa bbb ccc
 
-  --disable_auto_downcast
-        Disables automatic downcast processing from Float64 to Float32 and INT64
-        to INT32. Try enabling it and re-running it if you encounter type-related
-        errors.
+  -d, --disable_auto_downcast
+    Disables automatic downcast processing from Float64 to Float32 and INT64
+    to INT32. Try enabling it and re-running it if you encounter type-related
+    errors.
 
-  --non_verbose
-        Do not show all information logs. Only error logs are displayed.
+  -n, --non_verbose
+    Do not show all information logs. Only error logs are displayed.
 ```
 
 ## 3. In-script Usage
